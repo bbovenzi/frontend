@@ -118,6 +118,7 @@ class Index extends Component {
             <Grid item xs={12} md={12}>
               <LineComparison
                 currentLine={currentLine}
+                arrivalWindow={arrivalWindow}
                 formattedData={formattedLineData}
                 allLineData={allLineData}
               />

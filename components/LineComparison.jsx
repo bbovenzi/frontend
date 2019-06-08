@@ -81,7 +81,6 @@ class LineComparison extends React.Component {
       allLineGraph: [],
       xAxis: 'All Daily Data',
       xTickFormat: [],
-      yAxis: '% Within 5 Minutes',
       yTickFormat: {
         formatter() {
           return `${this.value}%`;
@@ -97,9 +96,13 @@ class LineComparison extends React.Component {
       graphData,
       allLineGraph,
       xAxis,
-      yAxis,
     } = state;
-    const { allLineData, formattedData, currentLine } = props;
+    const {
+      allLineData,
+      formattedData,
+      currentLine,
+      arrivalWindow,
+    } = props;
     if (!graphData[0] && !allLineGraph[0]) {
       if (currentLine !== 'All') {
         return {
@@ -108,14 +111,14 @@ class LineComparison extends React.Component {
               deriveLine(formattedData, currentLine, allLineData),
               xAxis,
             ),
-            yAxis,
+            arrivalWindow,
           ),
           allLineGraph: deriveYAxis(
             deriveXAxis(
               deriveLine(formattedData, 'All Lines', allLineData),
               xAxis,
             ),
-            yAxis,
+            arrivalWindow,
           ),
         };
       }
@@ -125,7 +128,7 @@ class LineComparison extends React.Component {
             deriveLine(formattedData, 'All Lines', allLineData),
             xAxis,
           ),
-          yAxis,
+          arrivalWindow,
         ),
       };
     }
@@ -141,9 +144,9 @@ class LineComparison extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { currentLine } = this.props;
+    const { currentLine, arrivalWindow } = this.props;
     const { value } = this.state;
-    if (prevProps.currentLine !== currentLine) {
+    if (prevProps.currentLine !== currentLine || prevProps.arrivalWindow !== arrivalWindow) {
       this.formatGraphData(value);
     }
   }
@@ -166,8 +169,13 @@ class LineComparison extends React.Component {
   };
 
   formatGraphData = (value) => {
-    const { formattedData, allLineData, currentLine } = this.props;
-    const { xAxis, yAxis } = this.state;
+    const {
+      formattedData,
+      allLineData,
+      currentLine,
+      arrivalWindow,
+    } = this.props;
+    const { xAxis } = this.state;
     let cutOff;
     switch (value) {
       case 0:
@@ -199,7 +207,7 @@ class LineComparison extends React.Component {
             ),
             xAxis,
           ),
-          yAxis,
+          arrivalWindow,
         ),
       });
     } else {
@@ -220,7 +228,7 @@ class LineComparison extends React.Component {
           ),
           xAxis,
         ),
-        yAxis,
+        arrivalWindow,
       ),
     });
   };
@@ -232,14 +240,13 @@ class LineComparison extends React.Component {
   };
 
   render() {
-    const { classes, currentLine } = this.props;
+    const { classes, currentLine, arrivalWindow } = this.props;
     const {
       value,
       graphData,
       allLineGraph,
       xTickFormat,
       yTickFormat,
-      yAxis,
       sliderLabel,
     } = this.state;
     const { color } = currentLine === 'All' ? '#000' : linesByName[currentLine];
@@ -259,7 +266,7 @@ class LineComparison extends React.Component {
             color={color}
             xTickFormat={xTickFormat}
             yTickFormat={yTickFormat}
-            yAxis={yAxis}
+            yAxis={arrivalWindow}
             secondSeries={{
               name: '',
               color: '#c8c8c8',
