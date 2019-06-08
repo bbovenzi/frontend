@@ -4,7 +4,7 @@ import { lines, linesByName } from './LineInfo.js';
 const dateToString = (diff) => {
   let d = new Date();
   d.setDate(d.getDate() - diff);
-  
+
   let month = '' + (d.getMonth() + 1);
   let day = '' + d.getDate();
 
@@ -80,7 +80,7 @@ const deriveYAxis = (data, axisLabel) => {
       });
     case "% Within 1 Minute":
       return data.map((item, i) => {
-        return item.oneMin;        
+        return item.oneMin;
       });
     case "% Within 5 Minutes":
     return data.map((item, i) => {

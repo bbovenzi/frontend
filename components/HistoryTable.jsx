@@ -8,7 +8,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableFooter from '@material-ui/core/TableFooter';
 import TablePagination from '@material-ui/core/TablePagination';
 import TableRow from '@material-ui/core/TableRow';
-import { dateToString } from '~/helpers/formatHistory';
+import { dateToString } from '~/helpers/FormatHistory';
 import TablePaginationActions from '~/components/TablePaginationActions';
 
 const styles = theme => ({

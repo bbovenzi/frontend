@@ -11,7 +11,7 @@ import { withStyles } from '@material-ui/core/styles';
 import { linesByName } from '~/helpers/LineInfo';
 import {
   dateToString, deriveLine, deriveXAxis, deriveYAxis, prepareTableData,
-} from '~/helpers/formatHistory';
+} from '~/helpers/FormatHistory';
 import PropTypes from 'prop-types';
 import CONFIG from '~/config';
 

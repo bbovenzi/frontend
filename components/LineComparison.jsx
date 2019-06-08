@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Card,
   Typography,
-  Select,
 } from '@material-ui/core';
 import { Slider } from '@material-ui/lab';
 import { withStyles } from '@material-ui/core/styles';
@@ -12,8 +11,8 @@ import {
   deriveLine,
   deriveXAxis,
   deriveYAxis,
-} from '../helpers/formatHistory';
-import { lineLinks, linesByName } from '~/helpers/LineInfo';
+} from '~/helpers/FormatHistory';
+import { linesByName } from '~/helpers/LineInfo';
 
 const styles = theme => ({
   card: {
@@ -44,9 +43,6 @@ const styles = theme => ({
     fontSize: 36,
     marginBottom: '-.25em',
     textAlign: 'center',
-  },
-  compareText: {
-    fontSize: 16,
   },
   selectEmpty: {
     marginTop: theme.spacing.unit * 2,
@@ -83,7 +79,6 @@ class LineComparison extends React.Component {
     this.state = {
       graphData: [],
       allLineGraph: [],
-      line: 'Blue',
       xAxis: 'All Daily Data',
       xTickFormat: [],
       yAxis: '% Within 5 Minutes',
@@ -92,28 +87,45 @@ class LineComparison extends React.Component {
           return `${this.value}%`;
         },
       },
-      color: '#2461aa',
       value: 0,
       sliderLabel: 'All Time',
     };
   }
 
   static getDerivedStateFromProps(props, state) {
-    if (!state.graphData[0] && !state.allLineGraph[0]) {
-      return {
-        graphData: deriveYAxis(
-          deriveXAxis(
-            deriveLine(props.formattedData, state.line, props.allLineData),
-            state.xAxis,
+    const {
+      graphData,
+      allLineGraph,
+      xAxis,
+      yAxis,
+    } = state;
+    const { allLineData, formattedData, currentLine } = props;
+    if (!graphData[0] && !allLineGraph[0]) {
+      if (currentLine !== 'All') {
+        return {
+          graphData: deriveYAxis(
+            deriveXAxis(
+              deriveLine(formattedData, currentLine, allLineData),
+              xAxis,
+            ),
+            yAxis,
           ),
-          state.yAxis,
-        ),
+          allLineGraph: deriveYAxis(
+            deriveXAxis(
+              deriveLine(formattedData, 'All Lines', allLineData),
+              xAxis,
+            ),
+            yAxis,
+          ),
+        };
+      }
+      return {
         allLineGraph: deriveYAxis(
           deriveXAxis(
-            deriveLine(props.formattedData, 'All Lines', props.allLineData),
-            state.xAxis,
+            deriveLine(formattedData, 'All Lines', allLineData),
+            xAxis,
           ),
-          state.yAxis,
+          yAxis,
         ),
       };
     }
@@ -126,6 +138,14 @@ class LineComparison extends React.Component {
         dateToString(prevState.graphData.length - 1 - i)
       )),
     }));
+  }
+
+  componentDidUpdate(prevProps) {
+    const { currentLine } = this.props;
+    const { value } = this.state;
+    if (prevProps.currentLine !== currentLine) {
+      this.formatGraphData(value);
+    }
   }
 
   setLabel = (value) => {
@@ -146,8 +166,8 @@ class LineComparison extends React.Component {
   };
 
   formatGraphData = (value) => {
-    const { formattedData, allLineData } = this.props;
-    const { xAxis, yAxis, line } = this.state;
+    const { formattedData, allLineData, currentLine } = this.props;
+    const { xAxis, yAxis } = this.state;
     let cutOff;
     switch (value) {
       case 0:
@@ -165,21 +185,29 @@ class LineComparison extends React.Component {
         cutOff = 7;
         break;
     }
-    this.setState({
-      graphData: deriveYAxis(
-        deriveXAxis(
-          deriveLine(
-            formattedData.slice(
-              formattedData.length - cutOff,
-              formattedData.length,
+    if (currentLine !== 'All') {
+      this.setState({
+        graphData: deriveYAxis(
+          deriveXAxis(
+            deriveLine(
+              formattedData.slice(
+                formattedData.length - cutOff,
+                formattedData.length,
+              ),
+              currentLine,
+              allLineData.slice(allLineData.length - cutOff, allLineData.length),
             ),
-            line,
-            allLineData.slice(allLineData.length - cutOff, allLineData.length),
+            xAxis,
           ),
-          xAxis,
+          yAxis,
         ),
-        yAxis,
-      ),
+      });
+    } else {
+      this.setState({
+        graphData: [],
+      });
+    }
+    this.setState({
       allLineGraph: deriveYAxis(
         deriveXAxis(
           deriveLine(
@@ -203,39 +231,18 @@ class LineComparison extends React.Component {
     this.formatGraphData(value);
   };
 
-  handleLineChange = (event) => {
-    const { formattedData, allLineData } = this.props;
-    const { xAxis, yAxis } = this.state;
-    this.setState({
-      line: event.target.value,
-      color: linesByName[event.target.value].color,
-      graphData: deriveYAxis(
-        deriveXAxis(
-          deriveLine(
-            formattedData,
-            event.target.value,
-            allLineData,
-          ),
-          xAxis,
-        ),
-        yAxis,
-      ),
-    });
-  };
-
   render() {
-    const { classes } = this.props;
+    const { classes, currentLine } = this.props;
     const {
       value,
       graphData,
       allLineGraph,
-      color,
       xTickFormat,
       yTickFormat,
       yAxis,
-      line,
       sliderLabel,
     } = this.state;
+    const { color } = currentLine === 'All' ? '#000' : linesByName[currentLine];
 
     return (
       <Card>
@@ -243,19 +250,6 @@ class LineComparison extends React.Component {
           <Typography className={classes.header}>
             All Line Performance Chart
           </Typography>
-          <div>
-            <Typography className={classes.compareText} inline>
-              Compare:
-            </Typography>
-            <Select
-              value={line}
-              onChange={this.handleLineChange}
-              name="line"
-              className={classes.selectEmpty}
-            >
-              {lineLinks(classes)}
-            </Select>
-          </div>
         </div>
         <div className={classes.chartContainer}>
           <HistoryChart
@@ -275,7 +269,8 @@ class LineComparison extends React.Component {
         </div>
         <div className={classes.sliderContainer}>
           <Typography id="slider-icon">
-View data for
+            View data for
+            {' '}
             {sliderLabel}
           </Typography>
           <Slider
