@@ -255,7 +255,9 @@ class LineComparison extends React.Component {
       <Card>
         <div className={classes.headerContainer}>
           <Typography className={classes.header}>
-            All Line Performance Chart
+            {currentLine}
+            {' '}
+            Line Performance Chart
           </Typography>
         </div>
         <div className={classes.chartContainer}>
